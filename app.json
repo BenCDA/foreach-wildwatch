@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.foreachwildwatch",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour vous aider à localiser et observer la faune sauvage.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour vous aider à localiser et observer la faune sauvage, même en arrière-plan."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.example.foreachwildwatch"
     },
     "web": {
       "output": "static",
@@ -38,7 +44,15 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox", 
+          "RNMapboxMapsDownloadToken": "sk.eyJ1Ijoic3JheW5hdWQtbGFtb2JpbGVyeSIsImEiOiJjbWZoY2hzMGUwYmtoMmlxdG5vdHRneXFlIn0.NDrbW7jA9GC9txgBp_lVJw"
+        }
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

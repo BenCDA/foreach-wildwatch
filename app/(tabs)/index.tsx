@@ -1,98 +1,81 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useCurrentPosition } from '@/hooks/useCurrentPosition';
+import LoadingScreen from '@/components/LoadingScreen';
+import UnauthorizedScreen from '@/components/UnauthorizedScreen';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const {
+    location,
+    loading,
+    permissionStatus,
+    openSettings,
+    getCurrentLocation,
+    startWatching,
+    stopWatching,
+  } = useCurrentPosition();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  if (loading) return <LoadingScreen />;
+  if (permissionStatus !== 'granted') return <UnauthorizedScreen openSettings={openSettings} />;
+
+  return (
+    <View style={styles.container}>
+      {location ? (
+        <View style={styles.card}>
+          <Text style={styles.title}>📍 Position actuelle</Text>
+          <Text style={styles.coords}>Lat: {location.latitude.toFixed(6)}</Text>
+          <Text style={styles.coords}>Lng: {location.longitude.toFixed(6)}</Text>
+          <Text style={styles.coords}>
+            Précision: {location.accuracy ? `${location.accuracy.toFixed(0)} m` : 'N/A'}
+          </Text>
+          <Text style={styles.timestamp}>
+            ⏰ {new Date(location.timestamp).toLocaleTimeString('fr-FR')}
+          </Text>
+        </View>
+      ) : (
+        <Text style={styles.noLocation}>Aucune position disponible</Text>
+      )}
+
+      <View style={styles.actions}>
+        <TouchableOpacity style={[styles.button, styles.refresh]} onPress={getCurrentLocation}>
+          <Text style={styles.buttonText}>🔄 Rafraîchir</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.watch]} onPress={startWatching}>
+          <Text style={styles.buttonText}>▶️ Suivi</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.stop]} onPress={stopWatching}>
+          <Text style={styles.buttonText}>⏹️ Stop</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
     alignItems: 'center',
-    gap: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#2d5a3d' },
+  coords: { fontSize: 16, marginBottom: 6, color: '#333' },
+  timestamp: { fontSize: 14, color: '#666', marginTop: 8 },
+  noLocation: { fontSize: 16, color: '#999', marginBottom: 20 },
+  actions: { flexDirection: 'row', gap: 12 },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  refresh: { backgroundColor: '#2d5a3d' },
+  watch: { backgroundColor: '#4caf50' },
+  stop: { backgroundColor: '#f44336' },
+  buttonText: { color: '#fff', fontWeight: '600' },
 });
