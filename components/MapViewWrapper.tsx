@@ -1,5 +1,3 @@
-// components/MapViewWrapper.tsx
-
 import React, { useState, useCallback } from 'react';
 import { View, LayoutChangeEvent, StyleSheet } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
@@ -10,10 +8,7 @@ interface MapViewWrapperProps {
   onPress?: (feature: any) => void;
 }
 
-/**
- * Wrapper qui s'assure que Mapbox ne se rende qu'après avoir des dimensions valides
- * Résout l'erreur "Invalid size is used for setting the map view"
- */
+
 export const MapViewWrapper: React.FC<MapViewWrapperProps> = ({ 
   children, 
   style,
@@ -24,7 +19,6 @@ export const MapViewWrapper: React.FC<MapViewWrapperProps> = ({
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     
-    // Ne définir les dimensions que si elles sont valides
     if (width > 0 && height > 0) {
       setDimensions({ width, height });
     }

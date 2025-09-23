@@ -1,5 +1,3 @@
-// app/(tabs)/map.tsx
-
 import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
