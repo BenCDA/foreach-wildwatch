@@ -12,23 +12,27 @@ export default function MapScreen() {
   const { location, loading, permissionStatus, openSettings } = useCurrentPosition();
 
   if (loading) return <LoadingScreen />;
-  if (permissionStatus !== 'granted') return <UnauthorizedScreen openSettings={openSettings} />;
+  if (permissionStatus !== 'granted') {
+    return <UnauthorizedScreen openSettings={openSettings} />;
+  }
 
   return (
     <View style={styles.page}>
-      <MapboxGL.MapView style={styles.map}>
+      <MapboxGL.MapView
+        style={styles.map}
+        styleURL={MapboxGL.StyleURL.Street} // obligatoire
+      >
         {location && (
-          <MapboxGL.Camera
-            zoomLevel={14}
-            centerCoordinate={[location.longitude, location.latitude]}
-          />
-        )}
-
-        {location && (
-          <MapboxGL.PointAnnotation
-            id="current-location"
-            coordinate={[location.longitude, location.latitude]}
-          />
+          <>
+            <MapboxGL.Camera
+              zoomLevel={14}
+              centerCoordinate={[location.longitude, location.latitude]}
+            />
+            <MapboxGL.PointAnnotation
+              id="current-location"
+              coordinate={[location.longitude, location.latitude]}
+            />
+          </>
         )}
       </MapboxGL.MapView>
     </View>
