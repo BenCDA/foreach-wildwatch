@@ -13,7 +13,10 @@
       "bundleIdentifier": "com.example.foreachwildwatch",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour vous aider à localiser et observer la faune sauvage.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour vous aider à localiser et observer la faune sauvage, même en arrière-plan."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour vous aider à localiser et observer la faune sauvage, même en arrière-plan.",
+        "NSCameraUsageDescription": "WildWatch utilise votre caméra pour photographier les animaux que vous observez.",
+        "NSPhotoLibraryUsageDescription": "WildWatch accède à vos photos pour ajouter des images d'animaux à vos observations.",
+        "NSPhotoLibraryAddUsageDescription": "WildWatch enregistre les photos d'animaux dans votre galerie."
       }
     },
     "android": {
@@ -23,6 +26,13 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.example.foreachwildwatch"
@@ -49,10 +59,12 @@
         "@rnmapbox/maps",
         {
           "RNMapboxMapsImpl": "mapbox", 
-          "RNMapboxMapsDownloadToken": "sk.eyJ1Ijoic3JheW5hdWQtbGFtb2JpbGVyeSIsImEiOiJjbWZoY2hzMGUwYmtoMmlxdG5vdHRneXFlIn0.NDrbW7jA9GC9txgBp_lVJw"
+          "RNMapboxMapsDownloadToken": "sk.eyJ1Ijoic3JheW5hdWQtbGFtb2JpbGVyeSIsImEiOiJjbWZoY2hzMGUwYmtoMmlxdG5vdHRneXBlIn0.NDrbW7jA9GC9txgBp_lVJw"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image-picker",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true,
