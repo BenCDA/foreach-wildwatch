@@ -40,6 +40,8 @@ export default function MapScreen() {
   const [selectedObservation, setSelectedObservation] = useState<WildlifeObservation | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedObservation, setEditedObservation] = useState<{ species: string; description: string }>({ species: '', description: '' });
   const [newObservation, setNewObservation] = useState({
     species: '',
     description: '',
@@ -158,6 +160,45 @@ export default function MapScreen() {
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de partager');
     }
+  };
+
+  // Entrer en mode édition
+  const startEditMode = (obs: WildlifeObservation) => {
+    setEditedObservation({
+      species: obs.species,
+      description: obs.description || '',
+    });
+    setIsEditMode(true);
+  };
+
+  // Sauvegarder les modifications
+  const saveEditedObservation = () => {
+    if (!selectedObservation) return;
+
+    if (!editedObservation.species.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer le nom de l\'espèce');
+      return;
+    }
+
+    const updatedObservations = observations.map(obs =>
+      obs.id === selectedObservation.id
+        ? { ...obs, species: editedObservation.species, description: editedObservation.description }
+        : obs
+    );
+
+    setObservations(updatedObservations);
+    setSelectedObservation({
+      ...selectedObservation,
+      species: editedObservation.species,
+      description: editedObservation.description,
+    });
+    setIsEditMode(false);
+  };
+
+  // Annuler l'édition
+  const cancelEdit = () => {
+    setIsEditMode(false);
+    setEditedObservation({ species: '', description: '' });
   };
 
   return (
@@ -322,11 +363,40 @@ export default function MapScreen() {
                 )}
                 
                 <View style={styles.detailInfo}>
-                  <Text style={styles.detailSpecies}>{selectedObservation.species}</Text>
-                  {selectedObservation.description && (
-                    <Text style={styles.detailDescription}>{selectedObservation.description}</Text>
+                  {isEditMode ? (
+                    <>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Nom de l'espèce</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={editedObservation.species}
+                          onChangeText={(text) => setEditedObservation({ ...editedObservation, species: text })}
+                          placeholder="Ex: Écureuil roux"
+                          placeholderTextColor="#999"
+                        />
+                      </View>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Description (optionnel)</Text>
+                        <TextInput
+                          style={[styles.input, styles.textArea]}
+                          value={editedObservation.description}
+                          onChangeText={(text) => setEditedObservation({ ...editedObservation, description: text })}
+                          placeholder="Comportement observé, nombre d'individus..."
+                          placeholderTextColor="#999"
+                          multiline
+                          numberOfLines={3}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.detailSpecies}>{selectedObservation.species}</Text>
+                      {selectedObservation.description && (
+                        <Text style={styles.detailDescription}>{selectedObservation.description}</Text>
+                      )}
+                    </>
                   )}
-                  
+
                   <View style={styles.detailMeta}>
                     <View style={styles.infoRow}>
                       <Ionicons name="calendar" size={16} color="#666" />
@@ -338,19 +408,45 @@ export default function MapScreen() {
                 </View>
 
                 <View style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.shareButton]}
-                    onPress={() => shareObservation(selectedObservation)}
-                  >
-                    <Text style={styles.actionButtonText}>Partager</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={() => deleteObservation(selectedObservation.id)}
-                  >
-                    <Text style={styles.deleteButtonText}>Supprimer</Text>
-                  </TouchableOpacity>
+                  {isEditMode ? (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.shareButton]}
+                        onPress={saveEditedObservation}
+                      >
+                        <Text style={styles.actionButtonText}>Sauvegarder</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.cancelButton]}
+                        onPress={cancelEdit}
+                      >
+                        <Text style={styles.actionButtonText}>Annuler</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.editButton]}
+                        onPress={() => startEditMode(selectedObservation)}
+                      >
+                        <Text style={styles.actionButtonText}>Modifier</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.shareButton]}
+                        onPress={() => shareObservation(selectedObservation)}
+                      >
+                        <Text style={styles.actionButtonText}>Partager</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.deleteButton]}
+                        onPress={() => deleteObservation(selectedObservation.id)}
+                      >
+                        <Text style={styles.deleteButtonText}>Supprimer</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               </ScrollView>
             )}
@@ -568,6 +664,12 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     backgroundColor: '#007AFF',
+  },
+  editButton: {
+    backgroundColor: '#FF9500',
+  },
+  cancelButton: {
+    backgroundColor: '#8E8E93',
   },
   deleteButton: {
     backgroundColor: '#FF3B30',
