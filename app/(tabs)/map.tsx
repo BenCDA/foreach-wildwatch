@@ -342,13 +342,21 @@ export default function MapScreen() {
         visible={showDetailModal}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowDetailModal(false)}
+        onRequestClose={() => {
+          setShowDetailModal(false);
+          setIsEditMode(false);
+          setEditedObservation({ species: '', description: '' });
+        }}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Observation</Text>
-              <TouchableOpacity onPress={() => setShowDetailModal(false)}>
+              <TouchableOpacity onPress={() => {
+                setShowDetailModal(false);
+                setIsEditMode(false);
+                setEditedObservation({ species: '', description: '' });
+              }}>
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
