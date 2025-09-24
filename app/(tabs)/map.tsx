@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,17 +12,129 @@ import {
   KeyboardAvoidingView,
   Platform,
   Share,
+  Animated,
 } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 import { useCurrentPosition } from '@/hooks/useCurrentPosition';
 import LoadingScreen from '@/components/LoadingScreen';
 import UnauthorizedScreen from '@/components/UnauthorizedScreen';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 
 MapboxGL.setAccessToken("pk.eyJ1Ijoic3JheW5hdWQtbGFtb2JpbGVyeSIsImEiOiJjbWZmdTRienQwb2F4MmtzYmprNWxieWZwIn0.mgySs3rW_6jA7hEKCF7ycw");
+
+// Composant marqueur animé
+const AnimatedMarker = ({ observation, onPress }: { observation: WildlifeObservation, onPress: () => void }) => {
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Animation d'apparition
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+
+    // Animation de pulsation continue
+    const pulse = () => {
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => pulse());
+    };
+    pulse();
+  }, []);
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.markerTouchable}>
+      <Animated.View style={[
+        styles.observationMarker,
+        {
+          transform: [
+            { scale: scaleAnim },
+            { scale: pulseAnim }
+          ]
+        }
+      ]}>
+        <View style={styles.markerShadow}>
+          <View style={styles.markerContainer}>
+            {observation.imageUri ? (
+              <Image source={{ uri: observation.imageUri }} style={styles.markerImage} />
+            ) : (
+              <View style={styles.markerIconContainer}>
+                <Text style={styles.markerEmoji}>🦌</Text>
+              </View>
+            )}
+            <View style={styles.markerBadge}>
+              <View style={styles.markerDot} />
+            </View>
+          </View>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
+// Composant position actuelle animée
+const AnimatedCurrentLocation = () => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(0.7)).current;
+
+  useEffect(() => {
+    const pulse = () => {
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.3,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(opacityAnim, {
+            toValue: 0.3,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0.7,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => pulse());
+    };
+    pulse();
+  }, []);
+
+  return (
+    <View style={styles.currentLocation}>
+      <Animated.View style={[
+        styles.currentLocationPulse,
+        {
+          transform: [{ scale: pulseAnim }],
+          opacity: opacityAnim,
+        }
+      ]} />
+      <View style={styles.currentLocationDot} />
+    </View>
+  );
+};
 
 type WildlifeObservation = {
   id: string;
@@ -49,6 +161,31 @@ export default function MapScreen() {
     coordinate: [0, 0] as [number, number],
   });
   const cameraRef = useRef<MapboxGL.Camera>(null);
+  const addButtonScale = useRef(new Animated.Value(1)).current;
+  const modalScale = useRef(new Animated.Value(0.9)).current;
+  const modalOpacity = useRef(new Animated.Value(0)).current;
+
+  // Animation d'ouverture de modal
+  useEffect(() => {
+    if (showAddModal || showDetailModal) {
+      Animated.parallel([
+        Animated.timing(modalOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(modalScale, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      modalScale.setValue(0.9);
+      modalOpacity.setValue(0);
+    }
+  }, [showAddModal, showDetailModal]);
 
   if (loading) return <LoadingScreen />;
   if (permissionStatus !== 'granted') {
@@ -57,6 +194,20 @@ export default function MapScreen() {
 
   // Ouvrir le modal d'ajout avec la position actuelle
   const openAddObservation = () => {
+    // Animation du bouton
+    Animated.sequence([
+      Animated.timing(addButtonScale, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(addButtonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     if (location) {
       setNewObservation({
         ...newObservation,
@@ -220,9 +371,7 @@ export default function MapScreen() {
             id="current-location"
             coordinate={[location.longitude, location.latitude]}
           >
-            <View style={styles.currentLocation}>
-              <View style={styles.currentLocationDot} />
-            </View>
+            <AnimatedCurrentLocation />
           </MapboxGL.PointAnnotation>
         )}
 
@@ -237,34 +386,43 @@ export default function MapScreen() {
               setShowDetailModal(true);
             }}
           >
-            <View style={styles.observationMarker}>
-              {obs.imageUri ? (
-                <Image source={{ uri: obs.imageUri }} style={styles.markerImage} />
-              ) : (
-                <Text style={styles.markerEmoji}>🦌</Text>
-              )}
-            </View>
+            <AnimatedMarker
+              observation={obs}
+              onPress={() => {
+                setSelectedObservation(obs);
+                setShowDetailModal(true);
+              }}
+            />
           </MapboxGL.PointAnnotation>
         ))}
       </MapboxGL.MapView>
 
       {/* Bouton d'ajout flottant */}
-      <TouchableOpacity style={styles.addButton} onPress={openAddObservation}>
-        <Ionicons name="add" size={32} color="white" />
-      </TouchableOpacity>
+      <Animated.View style={[styles.addButton, { transform: [{ scale: addButtonScale }] }]}>
+        <TouchableOpacity style={styles.addButtonInner} onPress={openAddObservation}>
+          <Ionicons name="add" size={32} color="white" />
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Modal d'ajout */}
       <Modal
         visible={showAddModal}
-        animationType="slide"
+        animationType="none"
         transparent={true}
         onRequestClose={() => setShowAddModal(false)}
       >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalContainer}
-        >
-          <View style={styles.modalContent}>
+        <Animated.View style={[styles.modalContainer, { opacity: modalOpacity }]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1, justifyContent: 'flex-end' }}
+          >
+            <Animated.View style={[
+              styles.modalContent,
+              {
+                transform: [{ scale: modalScale }],
+                opacity: modalOpacity,
+              }
+            ]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nouvelle Observation</Text>
               <TouchableOpacity onPress={() => setShowAddModal(false)}>
@@ -333,14 +491,15 @@ export default function MapScreen() {
                 <Text style={styles.saveButtonText}>Enregistrer</Text>
               </TouchableOpacity>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </Modal>
 
       {/* Modal détail */}
       <Modal
         visible={showDetailModal}
-        animationType="slide"
+        animationType="none"
         transparent={true}
         onRequestClose={() => {
           setShowDetailModal(false);
@@ -348,8 +507,14 @@ export default function MapScreen() {
           setEditedObservation({ species: '', description: '' });
         }}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <Animated.View style={[styles.modalContainer, { opacity: modalOpacity }]}>
+          <Animated.View style={[
+            styles.modalContent,
+            {
+              transform: [{ scale: modalScale }],
+              opacity: modalOpacity,
+            }
+          ]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Observation</Text>
               <TouchableOpacity onPress={() => {
@@ -458,8 +623,8 @@ export default function MapScreen() {
                 </View>
               </ScrollView>
             )}
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </View>
   );
@@ -473,62 +638,121 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currentLocation: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: 'white',
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
   },
-  currentLocationDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#007AFF',
-  },
-  observationMarker: {
+  currentLocationPulse: {
+    position: 'absolute',
     width: 50,
     height: 50,
     borderRadius: 25,
+    backgroundColor: '#007AFF',
+    top: -10,
+    left: -10,
+  },
+  currentLocationDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#007AFF',
+  },
+  observationMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerTouchable: {
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  markerContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'white',
+    borderWidth: 4,
+    borderColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  markerImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  markerIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E8F5E8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerEmoji: {
+    fontSize: 24,
+  },
+  markerBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    borderWidth: 3,
-    borderColor: '#4CAF50',
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  markerImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  markerEmoji: {
-    fontSize: 28,
+  markerDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF6B6B',
   },
   addButton: {
     position: 'absolute',
     right: 20,
     bottom: 100,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 65,
+    height: 65,
+    borderRadius: 32.5,
     backgroundColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  addButtonInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32.5,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
+    backgroundColor: '#007AFF',
   },
   modalContainer: {
     flex: 1,
