@@ -1,50 +1,155 @@
-# Welcome to your Expo app 👋
+# 🦌 WildWatch - Application de Suivi de la Faune
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Une application mobile React Native développée avec Expo pour observer et cataloguer la faune sauvage. Enregistrez vos observations d'animaux avec photos, descriptions et géolocalisation sur une carte interactive.
 
-## Get started
+## ✨ Fonctionnalités
 
-1. Install dependencies
+### 🗺️ Carte Interactive
+- **Carte Mapbox** avec navigation fluide
+- **Géolocalisation** en temps réel avec animation pulsante
+- **Marqueurs animés** pour chaque observation avec animations d'apparition et de pulsation
+- **Interaction tactile** optimisée pour consulter les détails
 
+### 📸 Gestion des Observations
+- **Ajout d'observations** avec photo (caméra ou galerie)
+- **Modification** des titres et descriptions existantes
+- **Partage** des observations avec d'autres utilisateurs
+- **Suppression** avec confirmation de sécurité
+- **Stockage local** des données
+
+### 🎨 Interface Utilisateur
+- **Design moderne** avec animations fluides
+- **Modaux animés** avec transitions élégantes
+- **Marqueurs 3D** avec ombres et effets de profondeur
+- **Bouton flottant** avec feedback tactile
+- **Mode édition** intuitif avec validation
+
+## 🚀 Installation
+
+1. **Cloner le projet**
+   ```bash
+   git clone [URL_DU_REPO]
+   cd foreach-wildwatch
+   ```
+
+2. **Installer les dépendances**
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Configurer Mapbox**
+   - Créer un compte sur [Mapbox](https://mapbox.com)
+   - Remplacer le token d'accès dans `app/(tabs)/map.tsx`
 
+4. **Lancer l'application**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## 📱 Utilisation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Ajouter une Observation
+1. Appuyez sur le **bouton + flottant**
+2. Prenez une photo ou sélectionnez depuis la galerie
+3. Saisissez le **nom de l'espèce** et une **description**
+4. Enregistrez - l'observation apparaît sur la carte avec animation
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Consulter une Observation
+1. **Tapez sur un marqueur** sur la carte
+2. Consultez les détails dans le modal qui s'ouvre
+3. Options disponibles : **Modifier**, **Partager**, **Supprimer**
 
-## Get a fresh project
+### Modifier une Observation
+1. Dans le modal de détail, appuyez sur **"Modifier"**
+2. Modifiez le nom et/ou la description
+3. **Sauvegardez** ou **annulez** les changements
 
-When you're ready, run:
+## 🛠️ Technologies Utilisées
 
-```bash
-npm run reset-project
+- **React Native** avec **Expo**
+- **TypeScript** pour la sécurité du code
+- **Mapbox GL JS** pour la cartographie
+- **Expo Image Picker** pour la gestion des photos
+- **Expo Location** pour la géolocalisation
+- **React Native Animated API** pour les animations
+- **AsyncStorage** pour le stockage local
+
+## 📁 Structure du Projet
+
+```
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx          # Écran d'accueil
+│   │   ├── map.tsx           # Carte principale avec observations
+│   │   └── explore.tsx       # Écran d'exploration
+│   └── _layout.tsx           # Configuration de navigation
+├── components/
+│   ├── ObservationModal.tsx  # Modal d'ajout d'observations
+│   └── ui/                   # Composants UI réutilisables
+└── hooks/
+    └── useCurrentPosition.ts  # Hook de géolocalisation
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🎯 Fonctionnalités Clés
 
-## Learn more
+### Animations Avancées
+- **Marqueurs animés** : Apparition en spring, pulsation continue
+- **Position utilisateur** : Animation pulsante avec cercle expansif
+- **Modaux** : Transitions fluides avec scale et opacity
+- **Boutons** : Feedback tactile avec animations de pression
 
-To learn more about developing your project with Expo, look at the following resources:
+### Expérience Utilisateur
+- **Interface intuitive** avec feedback visuel
+- **Gestion d'erreurs** avec messages informatifs
+- **Validation des données** avant sauvegarde
+- **Confirmation** pour les actions destructives
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Performance
+- **Optimisation native** avec `useNativeDriver: true`
+- **Composants réutilisables** pour les marqueurs
+- **Gestion mémoire** appropriée des animations
+- **Zone tactile** optimisée pour mobile
 
-## Join the community
+## 🔧 Configuration
 
-Join our community of developers creating universal apps.
+### Permissions Requises
+- **Géolocalisation** : Pour centrer la carte et enregistrer les positions
+- **Caméra** : Pour prendre des photos d'observations
+- **Galerie** : Pour sélectionner des images existantes
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Variables d'Environnement
+```javascript
+// Dans app/(tabs)/map.tsx
+MapboxGL.setAccessToken("VOTRE_TOKEN_MAPBOX");
+```
+
+## 🐛 Résolution de Problèmes
+
+**Les marqueurs ne sont pas cliquables**
+- Vérifiez que `TouchableOpacity` est correctement configuré
+- Assurez-vous que les animations n'interceptent pas les touches
+
+**La géolocalisation ne fonctionne pas**
+- Vérifiez les permissions dans les paramètres de l'app
+- Testez sur un appareil physique plutôt qu'un simulateur
+
+**Les animations sont saccadées**
+- Vérifiez que `useNativeDriver: true` est utilisé
+- Réduisez la complexité des animations simultanées
+
+## 🚀 Développement Futur
+
+- [ ] **Synchronisation cloud** des observations
+- [ ] **Identification automatique** d'espèces par IA
+- [ ] **Mode hors ligne** avec cartes téléchargées
+- [ ] **Partage social** avec autres utilisateurs
+- [ ] **Statistiques** et graphiques d'observations
+- [ ] **Export** des données en différents formats
+
+## 📄 Licence
+
+Ce projet est développé à des fins éducatives et de démonstration.
+
+---
+
+**Développé avec ❤️ pour la protection de la faune sauvage** 🦌🐻🦅
